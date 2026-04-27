@@ -1,140 +1,830 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Expense Tracker</title>
-
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-body {
-    font-family: Arial;
-    background: #f5f5f5;
-    text-align: center;
-    position: relative;
-    margin: 0;
-}
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #b5f542;
+    --accent2: #42f5c8;
+    --danger: #f54242;
+    --text: #f0f0f0;
+    --muted: #666;
+    --card-shadow: 0 0 0 1px var(--border), 0 8px 32px rgba(0,0,0,0.4);
+  }
 
-/* ₹ Background */
-body::before {
-    content: "₹";
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 250px;
-    color: rgba(0, 150, 0, 0.08);
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(181,245,66,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(181,245,66,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
     z-index: 0;
-}
+  }
 
-.container {
-    width: 400px;
-    margin: 50px auto;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  .app {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
     position: relative;
     z-index: 1;
-}
+  }
 
-input, button {
-    margin: 6px;
-    padding: 8px;
-    width: 85%;
-}
+  /* Header */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
 
-button {
-    background: green;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
+  .logo {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
 
-button:hover {
-    background: darkgreen;
-}
+  .logo span {
+    color: var(--accent);
+  }
 
-ul {
-    list-style: none;
-    padding: 0;
-}
+  .header-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: right;
+  }
 
-li {
-    background: #e8f5e9;
-    margin: 6px;
-    padding: 8px;
+  /* Stats row */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--accent); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -1px;
+  }
+
+  .stat-sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Budget bar */
+  .budget-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 32px;
+  }
+
+  .budget-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .budget-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .budget-edit {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .budget-input-small {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    padding: 4px 10px;
     border-radius: 6px;
-}
+    width: 120px;
+  }
+
+  .budget-bar-bg {
+    background: var(--surface2);
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+  }
+
+  .budget-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.5s ease, background 0.3s;
+    background: var(--accent);
+  }
+
+  .budget-bar-fill.warning { background: #f5a542; }
+  .budget-bar-fill.danger { background: var(--danger); }
+
+  .budget-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  /* Two column layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* Form */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: sticky;
+    top: 24px;
+  }
+
+  .form-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 20px;
+  }
+
+  .field {
+    margin-bottom: 12px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    padding: 10px 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(181,245,66,0.1);
+  }
+
+  .field select option { background: var(--surface2); }
+
+  .btn-add {
+    width: 100%;
+    background: var(--accent);
+    color: #0d0d0d;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 12px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 0.15s, opacity 0.15s;
+    margin-top: 4px;
+  }
+
+  .btn-add:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-add:active { transform: translateY(0); }
+
+  /* List panel */
+  .list-panel {}
+
+  .list-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    outline: none;
+    min-width: 140px;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+
+  .filter-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    padding: 8px 10px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .btn-export {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 8px 14px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .btn-export:hover { background: var(--accent); color: #0d0d0d; }
+
+  /* Expense list */
+  .expense-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .expense-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.2s, transform 0.2s;
+    animation: slideIn 0.25s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .expense-item:hover { border-color: var(--accent); transform: translateX(2px); }
+
+  .cat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .expense-info { flex: 1; min-width: 0; }
+
+  .expense-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .expense-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .expense-amount {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .btn-del {
+    background: transparent;
+    border: 1px solid #333;
+    color: var(--muted);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .btn-del:hover { border-color: var(--danger); color: var(--danger); background: rgba(245,66,66,0.08); }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+  }
+
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 12px; }
+
+  /* Category breakdown */
+  .breakdown {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 24px;
+  }
+
+  .breakdown-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 16px;
+  }
+
+  .cat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .cat-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    width: 90px;
+    flex-shrink: 0;
+    text-transform: capitalize;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cat-bar-bg {
+    flex: 1;
+    background: var(--surface2);
+    border-radius: 999px;
+    height: 6px;
+    overflow: hidden;
+  }
+
+  .cat-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.5s ease;
+  }
+
+  .cat-amt {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    width: 70px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--accent);
+    color: #0d0d0d;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 10px 22px;
+    border-radius: 999px;
+    z-index: 100;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+  }
+
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Responsive */
+  @media (max-width: 680px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .form-card { position: static; }
+  }
 </style>
 </head>
-
 <body>
 
-<h2>Expense Tracker</h2>
+<div class="app">
+  <header>
+    <div>
+      <div class="logo">Expense<span>.</span></div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);margin-top:4px;">Track every rupee.</div>
+    </div>
+    <div class="header-meta" id="headerDate"></div>
+  </header>
 
-<div class="container">
-    <input id="amount" placeholder="Amount"><br>
-    <input id="category" placeholder="Category"><br>
-    <input id="person" placeholder="Person"><br>
-    <input id="place" placeholder="Place"><br>
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Spent</div>
+      <div class="stat-value" id="statTotal">₹0</div>
+      <div class="stat-sub" id="statCount">0 entries</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top Category</div>
+      <div class="stat-value" id="statTopCat" style="font-size:1.2rem">—</div>
+      <div class="stat-sub" id="statTopCatAmt"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top Spender</div>
+      <div class="stat-value" id="statTopPer" style="font-size:1.2rem">—</div>
+      <div class="stat-sub" id="statTopPerAmt"></div>
+    </div>
+  </div>
 
-    <button onclick="addExpense()">Add</button>
+  <!-- Budget -->
+  <div class="budget-section">
+    <div class="budget-header">
+      <div class="budget-title">Budget Tracker</div>
+      <div class="budget-edit">
+        <input class="budget-input-small" id="budgetInput" type="number" placeholder="Set budget">
+        <button class="btn-export" onclick="setBudget()">Set</button>
+      </div>
+    </div>
+    <div class="budget-bar-bg">
+      <div class="budget-bar-fill" id="budgetBar" style="width:0%"></div>
+    </div>
+    <div class="budget-info">
+      <span id="budgetUsed">₹0 spent</span>
+      <span id="budgetLeft"></span>
+    </div>
+  </div>
 
-    <h3 id="total">Total: ₹0</h3>
+  <div class="main-grid">
+    <!-- Form -->
+    <div class="form-card">
+      <div class="form-title">New Entry</div>
 
-    <ul id="list"></ul>
+      <div class="field">
+        <label>Amount (₹)</label>
+        <input id="amount" type="number" placeholder="0">
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="category">
+          <option value="">Select category</option>
+          <option>Food</option>
+          <option>Travel</option>
+          <option>Shopping</option>
+          <option>Entertainment</option>
+          <option>Health</option>
+          <option>Education</option>
+          <option>Utilities</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Person</label>
+        <input id="person" placeholder="Name">
+      </div>
+      <div class="field">
+        <label>Place</label>
+        <input id="place" placeholder="Location">
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input id="date" type="date">
+      </div>
+      <button class="btn-add" onclick="addExpense()">+ Add Expense</button>
+    </div>
+
+    <!-- List -->
+    <div class="list-panel">
+      <div class="list-controls">
+        <input class="search-input" id="searchInput" placeholder="Search entries..." oninput="renderList()">
+        <select class="filter-select" id="filterCat" onchange="renderList()">
+          <option value="">All categories</option>
+        </select>
+        <button class="btn-export" onclick="exportCSV()">⬇ CSV</button>
+      </div>
+
+      <div class="expense-list" id="list"></div>
+
+      <!-- Breakdown -->
+      <div class="breakdown" id="breakdown" style="display:none">
+        <div class="breakdown-title">By Category</div>
+        <div id="catBars"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
+<div id="toast">Expense added!</div>
+
 <script>
-let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+  const CAT_COLORS = {
+    Food: '#f5a542', Travel: '#42b4f5', Shopping: '#f542a7',
+    Entertainment: '#a742f5', Health: '#42f5a7', Education: '#f5f542',
+    Utilities: '#42f5f5', Other: '#aaa'
+  };
 
-function save() {
-    localStorage.setItem("expenses", JSON.stringify(expenses));
-}
+  let expenses = JSON.parse(localStorage.getItem('xp_v2')) || [];
+  let budget = Number(localStorage.getItem('xp_budget')) || 0;
 
-function addExpense() {
-    let amt = document.getElementById("amount").value;
-    let cat = document.getElementById("category").value;
-    let per = document.getElementById("person").value;
-    let pla = document.getElementById("place").value;
+  // Set today's date default
+  document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
-    if(!amt) return alert("Enter amount");
+  // Header date
+  document.getElementById('headerDate').innerHTML =
+    new Date().toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-    expenses.push({amt, cat, per, pla});
+  function save() {
+    localStorage.setItem('xp_v2', JSON.stringify(expenses));
+  }
+
+  function addExpense() {
+    const amt = document.getElementById('amount').value.trim();
+    const cat = document.getElementById('category').value;
+    const per = document.getElementById('person').value.trim();
+    const pla = document.getElementById('place').value.trim();
+    const dt  = document.getElementById('date').value;
+
+    if (!amt || isNaN(amt) || Number(amt) <= 0) return alert('Enter a valid amount.');
+    if (!cat) return alert('Select a category.');
+    if (!per) return alert('Enter a person name.');
+
+    expenses.unshift({ amt: Number(amt), cat, per, pla, dt, id: Date.now() });
     save();
-    display();
 
-    document.getElementById("amount").value = "";
-    document.getElementById("category").value = "";
-    document.getElementById("person").value = "";
-    document.getElementById("place").value = "";
-}
+    // Reset
+    document.getElementById('amount').value = '';
+    document.getElementById('category').value = '';
+    document.getElementById('person').value = '';
+    document.getElementById('place').value = '';
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
-function deleteExpense(i) {
-    expenses.splice(i,1);
+    showToast('✓ Expense added!');
+    renderAll();
+  }
+
+  function deleteExpense(id) {
+    expenses = expenses.filter(e => e.id !== id);
     save();
-    display();
-}
+    showToast('Deleted.');
+    renderAll();
+  }
 
-function display() {
-    let list = document.getElementById("list");
-    let total = 0;
-    list.innerHTML = "";
+  function setBudget() {
+    const v = Number(document.getElementById('budgetInput').value);
+    if (!v || v <= 0) return alert('Enter a valid budget.');
+    budget = v;
+    localStorage.setItem('xp_budget', budget);
+    document.getElementById('budgetInput').value = '';
+    renderAll();
+  }
 
-    expenses.forEach((e,i) => {
-        total += Number(e.amt);
-        list.innerHTML += `
-        <li>
-        ${e.per} | ${e.cat} | ${e.pla} | ₹${e.amt}
-        <button onclick="deleteExpense(${i})">X</button>
-        </li>`;
+  function getFiltered() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const filterCat = document.getElementById('filterCat').value;
+    return expenses.filter(e => {
+      const matchCat = !filterCat || e.cat === filterCat;
+      const matchSearch = !search ||
+        e.per.toLowerCase().includes(search) ||
+        e.cat.toLowerCase().includes(search) ||
+        (e.pla && e.pla.toLowerCase().includes(search));
+      return matchCat && matchSearch;
     });
+  }
 
-    document.getElementById("total").innerText = "Total: ₹" + total;
-}
+  function renderList() {
+    const filtered = getFiltered();
+    const list = document.getElementById('list');
 
-display();
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="big">💸</div>No expenses yet.<br>Add one above!</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(e => {
+      const color = CAT_COLORS[e.cat] || '#aaa';
+      const dateStr = e.dt ? new Date(e.dt).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) : '';
+      return `
+      <div class="expense-item">
+        <div class="cat-dot" style="background:${color}"></div>
+        <div class="expense-info">
+          <div class="expense-name">${e.per} ${e.pla ? '· ' + e.pla : ''}</div>
+          <div class="expense-meta">${e.cat}${dateStr ? ' · ' + dateStr : ''}</div>
+        </div>
+        <div class="expense-amount">₹${e.amt.toLocaleString('en-IN')}</div>
+        <button class="btn-del" onclick="deleteExpense(${e.id})">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  function renderStats() {
+    const total = expenses.reduce((s, e) => s + e.amt, 0);
+    document.getElementById('statTotal').textContent = '₹' + total.toLocaleString('en-IN');
+    document.getElementById('statCount').textContent = expenses.length + ' entr' + (expenses.length === 1 ? 'y' : 'ies');
+
+    // Top category
+    const catTotals = {};
+    expenses.forEach(e => catTotals[e.cat] = (catTotals[e.cat] || 0) + e.amt);
+    const topCat = Object.entries(catTotals).sort((a,b) => b[1]-a[1])[0];
+    if (topCat) {
+      document.getElementById('statTopCat').textContent = topCat[0];
+      document.getElementById('statTopCatAmt').textContent = '₹' + topCat[1].toLocaleString('en-IN');
+    } else {
+      document.getElementById('statTopCat').textContent = '—';
+      document.getElementById('statTopCatAmt').textContent = '';
+    }
+
+    // Top person
+    const perTotals = {};
+    expenses.forEach(e => perTotals[e.per] = (perTotals[e.per] || 0) + e.amt);
+    const topPer = Object.entries(perTotals).sort((a,b) => b[1]-a[1])[0];
+    if (topPer) {
+      document.getElementById('statTopPer').textContent = topPer[0];
+      document.getElementById('statTopPerAmt').textContent = '₹' + topPer[1].toLocaleString('en-IN');
+    } else {
+      document.getElementById('statTopPer').textContent = '—';
+      document.getElementById('statTopPerAmt').textContent = '';
+    }
+
+    // Budget bar
+    if (budget > 0) {
+      const pct = Math.min((total / budget) * 100, 100);
+      const bar = document.getElementById('budgetBar');
+      bar.style.width = pct + '%';
+      bar.className = 'budget-bar-fill' + (pct >= 100 ? ' danger' : pct >= 75 ? ' warning' : '');
+      document.getElementById('budgetUsed').textContent = '₹' + total.toLocaleString('en-IN') + ' spent';
+      const left = budget - total;
+      document.getElementById('budgetLeft').textContent = left >= 0
+        ? '₹' + left.toLocaleString('en-IN') + ' remaining of ₹' + budget.toLocaleString('en-IN')
+        : '⚠ Over budget by ₹' + Math.abs(left).toLocaleString('en-IN');
+    } else {
+      document.getElementById('budgetBar').style.width = '0%';
+      document.getElementById('budgetUsed').textContent = 'No budget set';
+      document.getElementById('budgetLeft').textContent = '';
+    }
+
+    // Category bars
+    const bd = document.getElementById('breakdown');
+    const barsEl = document.getElementById('catBars');
+    const sorted = Object.entries(catTotals).sort((a,b) => b[1]-a[1]);
+    if (sorted.length) {
+      bd.style.display = 'block';
+      const max = sorted[0][1];
+      barsEl.innerHTML = sorted.map(([cat, amt]) => {
+        const color = CAT_COLORS[cat] || '#aaa';
+        const pct = (amt / max) * 100;
+        return `
+        <div class="cat-row">
+          <div class="cat-name">${cat}</div>
+          <div class="cat-bar-bg">
+            <div class="cat-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+          <div class="cat-amt">₹${amt.toLocaleString('en-IN')}</div>
+        </div>`;
+      }).join('');
+    } else {
+      bd.style.display = 'none';
+    }
+
+    // Update filter dropdown
+    const filterEl = document.getElementById('filterCat');
+    const cur = filterEl.value;
+    filterEl.innerHTML = '<option value="">All categories</option>' +
+      Object.keys(catTotals).map(c => `<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('');
+  }
+
+  function renderAll() {
+    renderStats();
+    renderList();
+  }
+
+  function exportCSV() {
+    if (!expenses.length) return alert('No expenses to export.');
+    const header = 'Amount,Category,Person,Place,Date';
+    const rows = expenses.map(e =>
+      `${e.amt},"${e.cat}","${e.per}","${e.pla || ''}","${e.dt || ''}"`
+    );
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'expenses.csv';
+    a.click();
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // Enter key on form
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && ['amount','category','person','place','date'].includes(document.activeElement.id)) {
+      addExpense();
+    }
+  });
+
+  renderAll();
 </script>
-
 </body>
 </html>
