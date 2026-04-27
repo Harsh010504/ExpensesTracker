@@ -715,7 +715,7 @@ function togglePinExpense(id) {
 
 // =================== RENDER EXPENSES ===================
 function getWalletExpenses() {
-  return state.expenses.filter(e => e.wallet === state.activeWallet || !e.wallet && state.activeWallet === 'default');
+  return state.expenses.filter(e => e.wallet === state.activeWallet || (!e.wallet && state.activeWallet === 'default'));
 }
 function getFiltered() {
   let exps = getWalletExpenses();
@@ -1005,7 +1005,9 @@ function renderPeople() {
 function updateWalletSelect() {
   const sel = document.getElementById('f-wallet');
   if (!sel) return;
-  sel.innerHTML = state.wallets.map(w=>`<option value="${w.id}" ${w.id===state.activeWallet?'selected':''}>${w.icon} ${w.name}</option>`).join('');
+  const current = sel.value || state.activeWallet;
+  sel.innerHTML = state.wallets.map(w=>`<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
+  sel.value = (current && sel.querySelector(`option[value="${current}"]`)) ? current : state.activeWallet;
 }
 
 function renderWallets() {
